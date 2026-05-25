@@ -211,23 +211,27 @@ const TRAINS = [
   { no:"5090", from:"稲沢",     to:"新鶴見",   koshigaya:null,    niiza:"22:15", omiya:null,    loco:"EF210", desc:"稲沢→新鶴見（夜行）" },
   // 高崎線・宇都宮線（大宮操＋上尾通過）
   // 上尾は大宮の約12分後、熊谷タの約30分前が目安
-  { no:"8786", from:"高崎操",   to:"大宮",     koshigaya:null, niiza:null, omiya:"04:16", ageo:"04:03", loco:"EF210", desc:"高崎操→大宮方面" },
-  { no:"2080", from:"新潟タ",   to:"隅田川",   koshigaya:null, niiza:null, omiya:"04:34", ageo:"04:21", loco:"EF66",  desc:"新潟タ→隅田川（EF66！）" },
+  // ── 高崎線（2025.3改正・上尾通過時刻）──
+  // 上尾は大宮の約13分後（上り）、大宮の約13分前（下り）が目安
+  { no:"8786", from:"高崎操",   to:"ツールM",  koshigaya:null, niiza:null, omiya:"04:16", ageo:"04:03", loco:"EF210", desc:"高崎操→大宮方面（タンク）" },
+  { no:"2080", from:"新潟タ",   to:"隅田川",   koshigaya:null, niiza:null, omiya:"04:34", ageo:"04:21", loco:"EF210", desc:"新潟タ→隅田川" },
+  { no:"2070", from:"富山",     to:"隅田川",   koshigaya:null, niiza:null, omiya:"05:31", ageo:"05:18", loco:"EF510", desc:"富山→隅田川（EF510！）" },
   { no:"3097", from:"隅田川",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"05:08", ageo:"05:21", loco:"EF210", desc:"隅田川→倉賀野" },
   { no:"3099", from:"新鶴見",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"05:52", ageo:"06:05", loco:"EF210", desc:"新鶴見→倉賀野" },
+  { no:"2090", from:"大阪タ",   to:"南長岡",   koshigaya:null, niiza:null, omiya:"11:05", ageo:"10:52", loco:"EF210", desc:"大阪タ→南長岡（日本海縦貫！）" },
   { no:"8877", from:"千葉貨",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"07:30", ageo:"07:43", loco:"EF210", desc:"千葉貨→倉賀野（石油！）" },
   { no:"4067", from:"福岡タ",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"08:02", ageo:"08:15", loco:"EF210", desc:"福岡タ→倉賀野（長距離！）" },
   { no:"8791", from:"隅田川",   to:"熊谷タ",   koshigaya:null, niiza:null, omiya:"10:45", ageo:"10:58", loco:"EF210", desc:"隅田川→熊谷タ" },
-  { no:"3093", from:"根岸",     to:"倉賀野",   koshigaya:null, niiza:null, omiya:"12:03", ageo:"12:16", loco:"EF210", desc:"根岸→倉賀野（石油タンク！）" },
+  { no:"6085", from:"新潟タ",   to:"熊谷タ",   koshigaya:null, niiza:null, omiya:null,    ageo:"11:06", loco:"EF510", desc:"新潟タ→熊谷タ（EF510！）" },
+  { no:"3093", from:"根岸",     to:"倉賀野",   koshigaya:null, niiza:null, omiya:"12:03", ageo:"12:04", loco:"EF210", desc:"根岸→倉賀野（石油タンク！）" },
+  { no:"2071", from:"隅田川",   to:"南長岡",   koshigaya:null, niiza:null, omiya:"12:00", ageo:"11:47", loco:"EF510", desc:"隅田川→南長岡（EF510！日本海縦貫！）" },
+  { no:"2088", from:"大阪タ",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"12:02", ageo:"12:15", loco:"EF210", desc:"大阪タ→倉賀野（長距離！）" },
+  { no:"4074", from:"熊谷タ",   to:"新鶴見",   koshigaya:null, niiza:null, omiya:"12:31", ageo:"12:18", loco:"EF210", desc:"熊谷タ→新鶴見" },
   { no:"3096", from:"熊谷タ",   to:"新鶴見",   koshigaya:null, niiza:null, omiya:"17:42", ageo:"17:29", loco:"EF210", desc:"熊谷タ→新鶴見" },
   { no:"3092", from:"熊谷タ",   to:"新鶴見",   koshigaya:null, niiza:null, omiya:"18:45", ageo:"18:32", loco:"EF210", desc:"熊谷タ→新鶴見" },
   { no:"3098", from:"熊谷タ",   to:"越谷タ",   koshigaya:"05:48", niiza:null, omiya:"21:14", ageo:"21:01", loco:"EF210", desc:"熊谷タ→越谷タ" },
-  { no:"4066", from:"熊谷タ",   to:"新鶴見",   koshigaya:null, niiza:null, omiya:"21:34", ageo:"21:21", loco:"EF210", desc:"熊谷タ→新鶴見" },
-  { no:"8762", from:"熊谷タ",   to:"川崎貨物", koshigaya:null, niiza:null, omiya:"00:36", ageo:"00:23", loco:"EH200", desc:"熊谷タ→川崎（EH200！）" },
-  { no:"2081", from:"隅田川",   to:"新潟タ",   koshigaya:null, niiza:null, omiya:"23:56", ageo:"00:09", loco:"EF66",  desc:"隅田川→新潟タ（EF66！）" },
-  { no:"6085", from:"新潟タ",   to:"熊谷タ",   koshigaya:null, niiza:null, omiya:null,    ageo:null,    loco:"EF510", desc:"新潟タ→熊谷タ（EF510！）" },
-  { no:"2090", from:"吹田タ",   to:"南長岡",   koshigaya:null, niiza:null, omiya:"11:05", ageo:"10:52", loco:"EF510", desc:"吹田タ→南長岡（EF510！）" },
-  { no:"2070", from:"富山",     to:"隅田川",   koshigaya:null, niiza:null, omiya:"05:31", ageo:"05:18", loco:"EF510", desc:"富山→隅田川（EF510！）" },
+  { no:"4056", from:"熊谷タ",   to:"新鶴見",   koshigaya:null, niiza:null, omiya:"21:18", ageo:"21:05", loco:"EF210", desc:"熊谷タ→新鶴見" },
+  { no:"2081", from:"隅田川",   to:"新潟タ",   koshigaya:null, niiza:null, omiya:"23:56", ageo:"00:09", loco:"EF210", desc:"隅田川→新潟タ" },
 ];
 
 const LOCO = {
