@@ -72,7 +72,7 @@
     }
     #locate-btn:disabled { opacity: 0.6; }
     #loc-err { font-size: 12px; color: #c0392b; text-align: center; margin-bottom: 6px; display: none; }
-    #station-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 6px; }
+    #station-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px; margin-bottom: 6px; }
     .st-btn {
       padding: 10px 4px; font-size: 13px; border-radius: 8px; cursor: pointer;
       background: var(--bg2); border: 0.5px solid var(--border);
@@ -208,15 +208,25 @@ const TRAINS = [
   { no:"2067", from:"百済タ",   to:"越谷タ",   koshigaya:"19:30", niiza:"18:35", omiya:null,    loco:"EF66",  desc:"百済タ→越谷タ（大阪から）" },
   { no:"5091", from:"新鶴見",   to:"稲沢",     koshigaya:null,    niiza:"21:00", omiya:null,    loco:"EF210", desc:"新鶴見→稲沢（夜行）" },
   { no:"5090", from:"稲沢",     to:"新鶴見",   koshigaya:null,    niiza:"22:15", omiya:null,    loco:"EF210", desc:"稲沢→新鶴見（夜行）" },
-  { no:"3090", from:"根岸",     to:"倉賀野",   koshigaya:null,    niiza:null,    omiya:"03:12", loco:"EF210", desc:"根岸→倉賀野（石油タンク！）" },
-  { no:"5560", from:"大宮操",   to:"根岸",     koshigaya:null,    niiza:null,    omiya:"06:20", loco:"EF210", desc:"大宮操→根岸" },
-  { no:"4069", from:"新鶴見",   to:"宇都宮タ", koshigaya:null,    niiza:null,    omiya:"09:35", loco:"EF210", desc:"新鶴見→宇都宮タ" },
-  { no:"3093", from:"新鶴見",   to:"倉賀野",   koshigaya:null,    niiza:null,    omiya:"10:55", loco:"EF210", desc:"新鶴見→倉賀野" },
-  { no:"5582", from:"川崎貨物", to:"宇都宮タ", koshigaya:null,    niiza:null,    omiya:"13:40", loco:"EF210", desc:"川崎→宇都宮タ" },
-  { no:"5960", from:"東京タ",   to:"仙台タ",   koshigaya:null,    niiza:null,    omiya:"17:30", loco:"EH500", desc:"東京タ→仙台タ（EH500！）" },
-  { no:"3071", from:"新鶴見",   to:"稲沢",     koshigaya:null,    niiza:null,    omiya:"20:15", loco:"EF210", desc:"新鶴見→稲沢（夜行）" },
-  { no:"4076", from:"宇都宮タ", to:"新座タ",   koshigaya:null,    niiza:"23:10", omiya:"22:00", loco:"EF210", desc:"宇都宮タ→新座タ（深夜）" },
-  { no:"3098b",from:"高崎操",   to:"大宮操",   koshigaya:null,    niiza:null,    omiya:"12:10", loco:"EH200", desc:"高崎操→（EH200 ブルーサンダー！）" },
+  // 高崎線・宇都宮線（大宮操＋上尾通過）
+  // 上尾は大宮の約12分後、熊谷タの約30分前が目安
+  { no:"8786", from:"高崎操",   to:"大宮",     koshigaya:null, niiza:null, omiya:"04:16", ageo:"04:03", loco:"EF210", desc:"高崎操→大宮方面" },
+  { no:"2080", from:"新潟タ",   to:"隅田川",   koshigaya:null, niiza:null, omiya:"04:34", ageo:"04:21", loco:"EF66",  desc:"新潟タ→隅田川（EF66！）" },
+  { no:"3097", from:"隅田川",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"05:08", ageo:"05:21", loco:"EF210", desc:"隅田川→倉賀野" },
+  { no:"3099", from:"新鶴見",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"05:52", ageo:"06:05", loco:"EF210", desc:"新鶴見→倉賀野" },
+  { no:"8877", from:"千葉貨",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"07:30", ageo:"07:43", loco:"EF210", desc:"千葉貨→倉賀野（石油！）" },
+  { no:"4067", from:"福岡タ",   to:"倉賀野",   koshigaya:null, niiza:null, omiya:"08:02", ageo:"08:15", loco:"EF210", desc:"福岡タ→倉賀野（長距離！）" },
+  { no:"8791", from:"隅田川",   to:"熊谷タ",   koshigaya:null, niiza:null, omiya:"10:45", ageo:"10:58", loco:"EF210", desc:"隅田川→熊谷タ" },
+  { no:"3093", from:"根岸",     to:"倉賀野",   koshigaya:null, niiza:null, omiya:"12:03", ageo:"12:16", loco:"EF210", desc:"根岸→倉賀野（石油タンク！）" },
+  { no:"3096", from:"熊谷タ",   to:"新鶴見",   koshigaya:null, niiza:null, omiya:"17:42", ageo:"17:29", loco:"EF210", desc:"熊谷タ→新鶴見" },
+  { no:"3092", from:"熊谷タ",   to:"新鶴見",   koshigaya:null, niiza:null, omiya:"18:45", ageo:"18:32", loco:"EF210", desc:"熊谷タ→新鶴見" },
+  { no:"3098", from:"熊谷タ",   to:"越谷タ",   koshigaya:"05:48", niiza:null, omiya:"21:14", ageo:"21:01", loco:"EF210", desc:"熊谷タ→越谷タ" },
+  { no:"4066", from:"熊谷タ",   to:"新鶴見",   koshigaya:null, niiza:null, omiya:"21:34", ageo:"21:21", loco:"EF210", desc:"熊谷タ→新鶴見" },
+  { no:"8762", from:"熊谷タ",   to:"川崎貨物", koshigaya:null, niiza:null, omiya:"00:36", ageo:"00:23", loco:"EH200", desc:"熊谷タ→川崎（EH200！）" },
+  { no:"2081", from:"隅田川",   to:"新潟タ",   koshigaya:null, niiza:null, omiya:"23:56", ageo:"00:09", loco:"EF66",  desc:"隅田川→新潟タ（EF66！）" },
+  { no:"6085", from:"新潟タ",   to:"熊谷タ",   koshigaya:null, niiza:null, omiya:null,    ageo:null,    loco:"EF510", desc:"新潟タ→熊谷タ（EF510！）" },
+  { no:"2090", from:"吹田タ",   to:"南長岡",   koshigaya:null, niiza:null, omiya:"11:05", ageo:"10:52", loco:"EF510", desc:"吹田タ→南長岡（EF510！）" },
+  { no:"2070", from:"富山",     to:"隅田川",   koshigaya:null, niiza:null, omiya:"05:31", ageo:"05:18", loco:"EF510", desc:"富山→隅田川（EF510！）" },
 ];
 
 const LOCO = {
@@ -230,6 +240,7 @@ const STATIONS = {
   koshigaya: { name:"越谷貨物ターミナル", lat:35.8937, lng:139.8070 },
   niiza:     { name:"新座貨物ターミナル", lat:35.8108, lng:139.5670 },
   omiya:     { name:"大宮操車場",         lat:35.9101, lng:139.6250 },
+  ageo:      { name:"上尾駅付近（高崎線）",lat:35.9878, lng:139.5934 },
 };
 
 // ── 状態 ──
