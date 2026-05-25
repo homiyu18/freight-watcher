@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>貨物列車ウォッチャー</title>
+  <meta name="description" content="埼玉の貨物列車がいつ来るかわかるアプリ" />
+  <meta name="theme-color" content="#1D9E75" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="貨物ウォッチャー" />
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json" />
+  <!-- アイコン（SVGをbase64埋め込み） -->
+  <link rel="apple-touch-icon" href="icon.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:   #1D9E75; --green-light: #E1F5EE; --green-dark: #04342C;
+      --blue:    #185FA5; --blue-light:  #E6F1FB; --blue-dark:  #042C53;
+      --amber:   #BA7517; --amber-light: #FAEEDA; --amber-dark: #633806;
+      --gray:    #5F5E5A; --gray-light:  #F1EFE8;
+      --red:     #A32D2D;
+      --brown:   #854F0B;
+      --text:    #1a1a1a; --text2: #666; --border: rgba(0,0,0,0.12);
+      --bg:      #fff;    --bg2:   #f5f5f3;
+      --radius:  12px;
+      --mono: 'Courier New', monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text: #f0f0ee; --text2: #aaa; --border: rgba(255,255,255,0.12);
+        --bg:   #1a1a18; --bg2:   #252523;
+        --green-light: #0a3a28; --blue-light: #0a2040;
+        --amber-light: #3a2800; --gray-light:  #2a2a28;
+      }
+    }
+    body { font-family: -apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+           background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── ヘッダー ── */
+    #header {
+      position: sticky; top: 0; z-index: 20;
+      background: var(--bg); border-bottom: 0.5px solid var(--border);
+      padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #header-left { display: flex; align-items: center; gap: 10px; }
+    #header-left .title { font-size: 15px; font-weight: 600; line-height: 1.2; }
+    #header-left .sub   { font-size: 11px; color: var(--text2); }
+    #clock { font-family: var(--mono); font-size: 22px; font-weight: 600; line-height: 1; }
+    #soon-badge { font-size: 11px; color: var(--amber); font-weight: 600; text-align: right; }
+
+    /* ── メイン ── */
+    #main { padding: 12px 16px 100px; max-width: 500px; margin: 0 auto; }
+
+    /* ── 状況バナー ── */
+    #status-bar {
+      background: var(--green-light); border: 0.5px solid var(--green);
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; color: var(--green-dark); font-weight: 500;
+      margin-bottom: 12px; display: none;
+    }
+
+    /* ── 駅選択 ── */
+    #locate-btn {
+      width: 100%; padding: 14px; font-size: 15px; font-weight: 600;
+      background: var(--green); color: #fff; border: none;
+      border-radius: var(--radius); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    #locate-btn:disabled { opacity: 0.6; }
+    #loc-err { font-size: 12px; color: #c0392b; text-align: center; margin-bottom: 6px; display: none; }
+    #station-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 6px; }
+    .st-btn {
+      padding: 10px 4px; font-size: 13px; border-radius: 8px; cursor: pointer;
+      background: var(--bg2); border: 0.5px solid var(--border);
+      color: var(--text); line-height: 1.3; text-align: center;
+    }
+    .st-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
+    #station-name { font-size: 12px; color: var(--text2); text-align: center; margin-bottom: 12px; }
+
+    /* ── 列車カード ── */
+    #train-list { display: flex; flex-direction: column; gap: 8px; }
+    .train-card {
+      border-radius: var(--radius); padding: 12px 14px;
+      border: 1.5px solid;
+    }
+    .train-card.hot { box-shadow: 0 0 0 3px rgba(186,117,23,0.18); }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .card-time { font-family: var(--mono); font-size: 28px; font-weight: 700; line-height: 1; }
+    .card-no   { font-size: 13px; color: var(--text2); margin-left: 8px; }
+    .card-badge { font-size: 12px; padding: 4px 10px; border-radius: 99px; color: #fff; font-weight: 600; white-space: nowrap; }
+    .card-route { font-size: 14px; margin-bottom: 6px; }
+    .card-route .arrow { color: var(--text2); margin: 0 4px; }
+    .card-loco { display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+                 padding: 3px 9px; border-radius: 99px; color: #fff; font-weight: 600; }
+    .card-desc { font-size: 11px; color: var(--text2); margin-left: 6px; }
+
+    /* ── 空状態 ── */
+    #empty { display: none; text-align: center; padding: 3rem 0; color: var(--text2); }
+    #empty .emoji { font-size: 40px; margin-bottom: 8px; }
+    #prompt { display: none; text-align: center; padding: 3rem 0; color: var(--text2); }
+    #prompt .emoji { font-size: 40px; margin-bottom: 8px; }
+
+    /* ── もっと見る ── */
+    #more-btn {
+      display: none; width: 100%; margin-top: 10px; padding: 12px;
+      font-size: 13px; border-radius: 8px; cursor: pointer;
+      background: var(--bg2); border: 0.5px solid var(--border); color: var(--text);
+    }
+
+    /* ── リンク ── */
+    #links { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; display: none; }
+    .link-btn {
+      padding: 12px 14px; font-size: 13px; border-radius: 8px; cursor: pointer;
+      background: var(--bg2); border: 0.5px solid var(--border); color: var(--text);
+      display: flex; align-items: center; gap: 8px; text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .link-btn .chevron { margin-left: auto; color: var(--text2); }
+
+    #note { font-size: 11px; color: var(--text2); text-align: center; margin-top: 12px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div id="header">
+  <div id="header-left">
+    <span style="font-size:26px">🚂</span>
+    <div>
+      <div class="title">貨物列車ウォッチャー</div>
+      <div class="sub">埼玉の貨物列車リアルタイム</div>
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div id="clock">--:--</div>
+    <div id="soon-badge"></div>
+  </div>
+</div>
+
+<!-- メイン -->
+<div id="main">
+  <div id="status-bar">📡 読み込み中…</div>
+
+  <!-- 駅選択 -->
+  <button id="locate-btn" onclick="locate()">
+    <span>📍</span> 現在地から一番近い駅を選ぶ
+  </button>
+  <div id="loc-err">位置情報を取得できませんでした。下のボタンで選んでください。</div>
+  <div id="station-grid">
+    <button class="st-btn" onclick="selectStation('koshigaya')">越谷タ</button>
+    <button class="st-btn" onclick="selectStation('niiza')">新座タ</button>
+    <button class="st-btn" onclick="selectStation('omiya')">大宮操</button>
+  </div>
+  <div id="station-name">↑ 駅を選ぶと列車が表示されます</div>
+
+  <!-- 列車リスト -->
+  <div id="prompt"><div class="emoji">👆</div><p>駅を選ぶと列車が表示されます</p></div>
+  <div id="empty" style="display:none"><div class="emoji">😴</div><p>この時間帯は貨物列車がありません<br>夜中〜早朝は多く走ります！</p></div>
+  <div id="train-list"></div>
+  <button id="more-btn" onclick="toggleMore()"></button>
+
+  <!-- 外部リンク -->
+  <div id="links">
+    <a class="link-btn" href="https://www.jrfreight.co.jp/i_daiya.html" target="_blank">
+      ⚠️ 今日の運行状況（JR貨物公式）<span class="chevron">›</span>
+    </a>
+    <a class="link-btn" href="https://www.jrfreight.co.jp/library/service/book/index.html" target="_blank">
+      📖 コンテナ時刻表（JR貨物公式）<span class="chevron">›</span>
+    </a>
+    <a class="link-btn" href="https://kamo.apreed.com/" target="_blank">
+      🔍 貨物ちゃんねる（機関車運用）<span class="chevron">›</span>
+    </a>
+  </div>
+  <p id="note">※ 時刻は2022〜2025年改正ダイヤ参考データです。<br>2026年3月改正で変更の可能性があります。</p>
+</div>
+
+<script>
+// ── データ ──
+const TRAINS = [
+  { no:"1090", from:"隅田川",   to:"越谷タ",   koshigaya:"01:54", niiza:null,    omiya:null,    loco:"EF210", desc:"隅田川→越谷タ" },
+  { no:"1091", from:"越谷タ",   to:"隅田川",   koshigaya:"02:37", niiza:null,    omiya:null,    loco:"EF210", desc:"越谷タ→隅田川" },
+  { no:"1092", from:"鹿島スタ", to:"越谷タ",   koshigaya:"04:05", niiza:null,    omiya:null,    loco:"EF210", desc:"鹿島スタ→越谷タ" },
+  { no:"1093", from:"越谷タ",   to:"鹿島スタ", koshigaya:"05:20", niiza:null,    omiya:null,    loco:"EF210", desc:"越谷タ→鹿島スタ" },
+  { no:"3096", from:"倉賀野",   to:"新座タ",   koshigaya:"03:15", niiza:"02:20", omiya:null,    loco:"EF210", desc:"倉賀野→新座タ" },
+  { no:"3097", from:"隅田川",   to:"倉賀野",   koshigaya:null,    niiza:"00:45", omiya:null,    loco:"EF210", desc:"隅田川→倉賀野" },
+  { no:"3098", from:"高崎操",   to:"越谷タ",   koshigaya:"05:48", niiza:"04:55", omiya:null,    loco:"EF210", desc:"高崎→越谷タ" },
+  { no:"3099", from:"倉賀野",   to:"新鶴見",   koshigaya:null,    niiza:"06:30", omiya:null,    loco:"EF210", desc:"倉賀野→新鶴見" },
+  { no:"4096", from:"蘇我",     to:"越谷タ",   koshigaya:"07:02", niiza:null,    omiya:null,    loco:"EF210", desc:"蘇我→越谷タ" },
+  { no:"4097", from:"越谷タ",   to:"蘇我",     koshigaya:"08:30", niiza:null,    omiya:null,    loco:"EF210", desc:"越谷タ→蘇我" },
+  { no:"4098", from:"蘇我",     to:"越谷タ",   koshigaya:"10:12", niiza:null,    omiya:null,    loco:"EF210", desc:"蘇我→越谷タ（2便）" },
+  { no:"4099", from:"越谷タ",   to:"蘇我",     koshigaya:"11:45", niiza:null,    omiya:null,    loco:"EF210", desc:"越谷タ→蘇我（2便）" },
+  { no:"1052", from:"幡生操",   to:"越谷タ",   koshigaya:"14:38", niiza:null,    omiya:null,    loco:"EF210", desc:"幡生操→越谷タ（長距離！）" },
+  { no:"1053", from:"越谷タ",   to:"幡生操",   koshigaya:"15:55", niiza:null,    omiya:null,    loco:"EF210", desc:"越谷タ→幡生操（長距離！）" },
+  { no:"1069", from:"新座タ",   to:"稲沢",     koshigaya:null,    niiza:"16:20", omiya:null,    loco:"EF210", desc:"新座タ→稲沢" },
+  { no:"2066", from:"越谷タ",   to:"百済タ",   koshigaya:"16:45", niiza:"15:50", omiya:null,    loco:"EF66",  desc:"越谷タ→百済タ（大阪方面）" },
+  { no:"2067", from:"百済タ",   to:"越谷タ",   koshigaya:"19:30", niiza:"18:35", omiya:null,    loco:"EF66",  desc:"百済タ→越谷タ（大阪から）" },
+  { no:"5091", from:"新鶴見",   to:"稲沢",     koshigaya:null,    niiza:"21:00", omiya:null,    loco:"EF210", desc:"新鶴見→稲沢（夜行）" },
+  { no:"5090", from:"稲沢",     to:"新鶴見",   koshigaya:null,    niiza:"22:15", omiya:null,    loco:"EF210", desc:"稲沢→新鶴見（夜行）" },
+  { no:"3090", from:"根岸",     to:"倉賀野",   koshigaya:null,    niiza:null,    omiya:"03:12", loco:"EF210", desc:"根岸→倉賀野（石油タンク！）" },
+  { no:"5560", from:"大宮操",   to:"根岸",     koshigaya:null,    niiza:null,    omiya:"06:20", loco:"EF210", desc:"大宮操→根岸" },
+  { no:"4069", from:"新鶴見",   to:"宇都宮タ", koshigaya:null,    niiza:null,    omiya:"09:35", loco:"EF210", desc:"新鶴見→宇都宮タ" },
+  { no:"3093", from:"新鶴見",   to:"倉賀野",   koshigaya:null,    niiza:null,    omiya:"10:55", loco:"EF210", desc:"新鶴見→倉賀野" },
+  { no:"5582", from:"川崎貨物", to:"宇都宮タ", koshigaya:null,    niiza:null,    omiya:"13:40", loco:"EF210", desc:"川崎→宇都宮タ" },
+  { no:"5960", from:"東京タ",   to:"仙台タ",   koshigaya:null,    niiza:null,    omiya:"17:30", loco:"EH500", desc:"東京タ→仙台タ（EH500！）" },
+  { no:"3071", from:"新鶴見",   to:"稲沢",     koshigaya:null,    niiza:null,    omiya:"20:15", loco:"EF210", desc:"新鶴見→稲沢（夜行）" },
+  { no:"4076", from:"宇都宮タ", to:"新座タ",   koshigaya:null,    niiza:"23:10", omiya:"22:00", loco:"EF210", desc:"宇都宮タ→新座タ（深夜）" },
+  { no:"3098b",from:"高崎操",   to:"大宮操",   koshigaya:null,    niiza:null,    omiya:"12:10", loco:"EH200", desc:"高崎操→（EH200 ブルーサンダー！）" },
+];
+
+const LOCO = {
+  EF210: { name:"EF210 桃太郎",       emoji:"🍑", color:"#1D9E75" },
+  EH200: { name:"EH200 ブルーサンダー",emoji:"⚡", color:"#185FA5" },
+  EH500: { name:"EH500 金太郎",       emoji:"🐻", color:"#A32D2D" },
+  EF66:  { name:"EF66",               emoji:"🚞", color:"#854F0B" },
+};
+
+const STATIONS = {
+  koshigaya: { name:"越谷貨物ターミナル", lat:35.8937, lng:139.8070 },
+  niiza:     { name:"新座貨物ターミナル", lat:35.8108, lng:139.5670 },
+  omiya:     { name:"大宮操車場",         lat:35.9101, lng:139.6250 },
+};
+
+// ── 状態 ──
+let currentStation = null;
+let showAll = false;
+let allTrains = [];
+
+// ── ユーティリティ ──
+function timeToMin(t) { const [h,m]=t.split(":").map(Number); return h*60+m; }
+function haversine(a,b,c,d){
+  const R=6371,r=Math.PI/180,dL=(c-a)*r,dN=(d-b)*r;
+  const x=Math.sin(dL/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dN/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+function badge(diff) {
+  if(diff<-15) return null;
+  if(diff< 0)  return { label:"通過直後", color:"#5F5E5A", bg:"var(--gray-light)",  hot:false };
+  if(diff<=5)  return { label:"⚡まもなく！", color:"#BA7517", bg:"var(--amber-light)", hot:true  };
+  if(diff<=20) return { label:"🚂もうすぐ",   color:"#185FA5", bg:"var(--blue-light)",  hot:false };
+  if(diff<=60) return { label:diff+"分後",    color:"#1D9E75", bg:"var(--green-light)", hot:false };
+  return       { label:diff+"分後",           color:"#5F5E5A", bg:"var(--gray-light)",  hot:false };
+}
+
+// ── 時計 ──
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,"0");
+  const m = String(now.getMinutes()).padStart(2,"0");
+  document.getElementById("clock").textContent = h+":"+m;
+  if(currentStation) render();
+}
+setInterval(updateClock, 20000);
+updateClock();
+
+// ── JR貨物状況取得 ──
+fetch("https://api.anthropic.com/v1/messages",{
+  method:"POST", headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:80,
+    messages:[{role:"user",content:"JR貨物の今日の輸送状況を子供向けに一言。絵文字入り「今日は〇〇！」15文字以内。"}]
+  })
+}).then(r=>r.json()).then(d=>{
+  const bar = document.getElementById("status-bar");
+  bar.textContent = "📡 " + (d?.content?.[0]?.text || "今日も元気に走ってるよ！🚂");
+  bar.style.display = "block";
+}).catch(()=>{
+  const bar = document.getElementById("status-bar");
+  bar.textContent = "📡 今日も元気に走ってるよ！🚂";
+  bar.style.display = "block";
+});
+
+// ── 現在地 ──
+function locate() {
+  const btn = document.getElementById("locate-btn");
+  const err = document.getElementById("loc-err");
+  err.style.display = "none";
+  if(!navigator.geolocation){ err.style.display="block"; return; }
+  btn.disabled = true;
+  btn.innerHTML = "<span>⏳</span> 位置情報を取得中…";
+  navigator.geolocation.getCurrentPosition(pos=>{
+    let best=null, bestD=Infinity;
+    for(const [id,s] of Object.entries(STATIONS)){
+      const d = haversine(pos.coords.latitude,pos.coords.longitude,s.lat,s.lng);
+      if(d<bestD){ bestD=d; best=id; }
+    }
+    btn.disabled = false;
+    btn.innerHTML = "<span>📍</span> 現在地から一番近い駅を選ぶ";
+    selectStation(best);
+  }, ()=>{
+    btn.disabled = false;
+    btn.innerHTML = "<span>📍</span> 現在地から一番近い駅を選ぶ";
+    err.style.display = "block";
+  }, {timeout:8000});
+}
+
+// ── 駅選択 ──
+function selectStation(id) {
+  currentStation = id;
+  showAll = false;
+  document.querySelectorAll(".st-btn").forEach(b=>b.classList.remove("active"));
+  const map = {koshigaya:0,niiza:1,omiya:2};
+  document.querySelectorAll(".st-btn")[map[id]].classList.add("active");
+  document.getElementById("station-name").textContent = "📍 "+STATIONS[id].name;
+  document.getElementById("links").style.display = "flex";
+  render();
+}
+
+// ── 描画 ──
+function render() {
+  const now = new Date();
+  const nowMin = now.getHours()*60+now.getMinutes();
+
+  allTrains = TRAINS
+    .filter(t=>t[currentStation]!=null)
+    .map(t=>{ const diff=timeToMin(t[currentStation])-nowMin; const b=badge(diff); return b?{...t,diff,b}:null; })
+    .filter(Boolean)
+    .sort((a,x)=>a.diff-x.diff);
+
+  const soonCount = allTrains.filter(t=>t.diff>=0&&t.diff<=20).length;
+  document.getElementById("soon-badge").textContent = soonCount>0 ? "⚡"+soonCount+"本まもなく" : "";
+
+  const list  = document.getElementById("train-list");
+  const empty = document.getElementById("empty");
+  const prompt= document.getElementById("prompt");
+  const moreBtn = document.getElementById("more-btn");
+
+  prompt.style.display = "none";
+  const upcoming = allTrains.filter(t=>t.diff>=0);
+  const displayed = showAll ? allTrains : (upcoming.length?upcoming:allTrains).slice(0,8);
+
+  if(displayed.length===0){
+    list.innerHTML=""; empty.style.display="block"; moreBtn.style.display="none"; return;
+  }
+  empty.style.display="none";
+
+  list.innerHTML = displayed.map(t=>{
+    const loco = LOCO[t.loco]||LOCO.EF210;
+    return `<div class="train-card${t.b.hot?" hot":""}" style="background:${t.b.bg};border-color:${t.b.color}">
+      <div class="card-top">
+        <div style="display:flex;align-items:baseline">
+          <span class="card-time" style="color:${t.b.color}">${t[currentStation]}</span>
+          <span class="card-no">${t.no}列車</span>
+        </div>
+        <span class="card-badge" style="background:${t.b.color}">${t.b.label}</span>
+      </div>
+      <div class="card-route">
+        <strong>${t.from}</strong><span class="arrow">→</span><strong>${t.to}</strong>
+      </div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">
+        <span class="card-loco" style="background:${loco.color}">${loco.emoji} ${loco.name}</span>
+        <span class="card-desc">${t.desc}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  if(allTrains.length>8){
+    moreBtn.style.display="block";
+    moreBtn.textContent = showAll ? "▲ 少なく表示" : `▼ さらに表示（計${allTrains.length}本）`;
+  } else { moreBtn.style.display="none"; }
+}
+
+function toggleMore(){ showAll=!showAll; render(); }
+</script>
+</body>
+</html>
