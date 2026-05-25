@@ -162,6 +162,7 @@
     <button class="st-btn" onclick="selectStation('koshigaya')">越谷タ</button>
     <button class="st-btn" onclick="selectStation('niiza')">新座タ</button>
     <button class="st-btn" onclick="selectStation('omiya')">大宮操</button>
+    <button class="st-btn" onclick="selectStation('ageo')">上尾付近 ⭐</button>
   </div>
   <div id="station-name">↑ 駅を選ぶと列車が表示されます</div>
 
@@ -345,7 +346,7 @@ function selectStation(id) {
   currentStation = id;
   showAll = false;
   document.querySelectorAll(".st-btn").forEach(b=>b.classList.remove("active"));
-  const map = {koshigaya:0,niiza:1,omiya:2};
+  const map = {koshigaya:0, niiza:1, omiya:2, ageo:3};
   document.querySelectorAll(".st-btn")[map[id]].classList.add("active");
   document.getElementById("station-name").textContent = "📍 "+STATIONS[id].name;
   document.getElementById("links").style.display = "flex";
